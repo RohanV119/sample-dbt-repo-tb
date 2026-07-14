@@ -5,7 +5,6 @@ sample_dbt_project:
       type: snowflake
       account: SFSEAPAC-RVASHISHT_AWS1
       user: RVASHISHT
-      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
       role: ACCOUNTADMIN
       database: DBT_DEMO_DB
       warehouse: COMPUTE_WH
