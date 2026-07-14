@@ -1,0 +1,13 @@
+sample_dbt_project:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: SFSEAPAC-RVASHISHT_AWS1
+      user: RVASHISHT
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+      role: ACCOUNTADMIN
+      database: DBT_DEMO_DB
+      warehouse: COMPUTE_WH
+      schema: DBT_DEMO
+      threads: 4

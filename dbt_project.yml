@@ -1,0 +1,43 @@
+name: 'sample_dbt_project'
+version: '1.0.0'
+
+profile: 'sample_dbt_project'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+# Project-level variables — override per environment with --vars flag
+vars:
+  start_date: '2020-01-01'
+  reporting_currency: 'USD'
+
+on-run-start:
+  - "{{ log('Starting dbt run — project: ' ~ project_name ~ ' | target: ' ~ target.name, info=True) }}"
+
+on-run-end:
+  - "{{ log('dbt run complete. Models built: ' ~ results | selectattr('status', 'equalto', 'success') | list | length, info=True) }}"
+
+models:
+  sample_dbt_project:
+    staging:
+      +materialized: view
+      +tags: ["staging"]
+    intermediate:
+      +materialized: view
+      +tags: ["intermediate"]
+    marts:
+      +materialized: table
+      +tags: ["marts"]
+
+seeds:
+  sample_dbt_project:
+    +schema: seeds
+    +quote_columns: false
