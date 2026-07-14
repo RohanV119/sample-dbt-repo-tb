@@ -18,9 +18,8 @@ models:
         tests:
           - not_null
           - relationships:
-              arguments:
-                to: ref('stg_trucks')
-                field: truck_id
+              to: ref('stg_trucks')
+              field: truck_id
       - name: location_id
         description: Foreign key to the physical location where the order was placed.
         tests:
