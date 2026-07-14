@@ -4,6 +4,6 @@ sample_dbt_project:
     dev:
       type: snowflake
       database: DBT_DEMO_DB
-      schema: staging_rvashisht 
+      schema: staging
       warehouse: COMPUTE_WH
       role: ACCOUNTADMIN

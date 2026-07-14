@@ -14,7 +14,6 @@ clean-targets:
   - target
   - dbt_packages
 
-# Project-level variables — override per environment with --vars flag
 vars:
   start_date: '2020-01-01'
   reporting_currency: 'USD'
