@@ -3,10 +3,7 @@ sample_dbt_project:
   outputs:
     dev:
       type: snowflake
-      account: SFSEAPAC-RVASHISHT_AWS1
-      user: RVASHISHT
-      role: ACCOUNTADMIN
       database: DBT_DEMO_DB
+      schema: staging_rvashisht 
       warehouse: COMPUTE_WH
-      schema: DBT_DEMO
-      threads: 4
+      role: ACCOUNTADMIN

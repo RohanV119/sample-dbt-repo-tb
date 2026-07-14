@@ -1,0 +1,12 @@
+# dbt
+dbt_packages/
+target/
+logs/
+.user.yml
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
