@@ -1,0 +1,51 @@
+version: 2
+
+exposures:
+
+  - name: daily_truck_sales_report
+    label: Daily Truck Sales Report
+    type: dashboard
+    maturity: high
+    url: https://app.powerbi.com/groups/me/reports/sample-daily-sales
+    description: >
+      Power BI dashboard showing daily revenue and order counts per truck.
+      Consumed by operations and franchise teams to monitor daily performance
+      and identify underperforming trucks.
+
+    depends_on:
+      - ref('fct_daily_truck_sales')
+
+    owner:
+      name: Aldrin Arena
+      email: aldrin.arena@rode.com
+
+  - name: city_performance_report
+    label: City Performance Overview
+    type: dashboard
+    maturity: medium
+    description: >
+      Tableau workbook tracking city-level revenue, order volume, and growth
+      trends. Used by the sales leadership team for territory planning.
+
+    depends_on:
+      - ref('fct_city_performance')
+
+    owner:
+      name: Aldrin Arena
+      email: aldrin.arena@rode.com
+
+  - name: menu_profitability_analysis
+    label: Menu Profitability Analysis
+    type: analysis
+    maturity: low
+    description: >
+      Spreadsheet-based analysis of menu item margins distributed to the
+      product and culinary teams. Highlights High/Medium/Low margin items
+      and identifies items to promote or retire.
+
+    depends_on:
+      - ref('fct_menu_profitability')
+
+    owner:
+      name: Aldrin Arena
+      email: aldrin.arena@rode.com

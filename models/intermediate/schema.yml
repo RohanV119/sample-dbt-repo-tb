@@ -1,0 +1,144 @@
+version: 2
+
+models:
+  - name: int_orders_enriched
+    description: >
+      Enriched order grain table joining staging orders, trucks, locations, and the
+      country_codes seed. Adds temporal columns (year, month, day-of-week), APAC flag,
+      and global region from ISO country code. This is the primary input for all
+      mart-level aggregations. Filtered to orders on or after the project start_date var.
+    columns:
+      - name: order_id
+        description: Unique identifier for the order (natural key from source).
+        tests:
+          - not_null
+          - unique
+      - name: truck_id
+        description: Foreign key to the truck that fulfilled the order.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_trucks')
+                field: truck_id
+      - name: location_id
+        description: Foreign key to the physical location where the order was placed.
+        tests:
+          - not_null
+      - name: customer_id
+        description: Identifier for the customer who placed the order. May be null for walk-up orders.
+      - name: order_ts
+        description: Timestamp of when the order was placed.
+        tests:
+          - not_null
+      - name: order_date
+        description: Calendar date of the order (truncated from order_ts).
+        tests:
+          - not_null
+      - name: order_year
+        description: Year extracted from order_ts.
+      - name: order_month
+        description: Month number (1–12) extracted from order_ts.
+      - name: order_day_of_week
+        description: Day of week (0=Sunday … 6=Saturday) extracted from order_ts.
+      - name: order_currency
+        description: ISO currency code of the transaction.
+      - name: order_amount
+        description: Pre-tax, pre-discount order subtotal.
+      - name: order_tax_amount
+        description: Tax component of the order.
+      - name: order_discount_amount
+        description: Discount applied to the order.
+      - name: order_total
+        description: Final amount paid by the customer after tax and discount.
+        tests:
+          - not_null
+          - is_positive
+      - name: menu_type_id
+        description: Menu type identifier from the truck record.
+      - name: truck_city
+        description: Primary city the truck is based in.
+      - name: truck_region
+        description: Region the truck operates in.
+      - name: truck_country
+        description: Country the truck is registered in.
+      - name: franchise_flag
+        description: Boolean — true if the truck is franchise-owned.
+      - name: ev_flag
+        description: Boolean — true if the truck uses an electric vehicle.
+      - name: truck_year
+        description: Model year of the truck vehicle.
+      - name: truck_make
+        description: Manufacturer of the truck (e.g. Ford, Toyota).
+      - name: truck_model
+        description: Model name of the truck vehicle.
+      - name: order_city
+        description: City where the order was placed (from location record).
+      - name: order_region
+        description: Region where the order was placed.
+      - name: iso_country_code
+        description: ISO 3166-1 alpha-2 code for the order country.
+      - name: order_country
+        description: Full country name where the order was placed.
+      - name: global_region
+        description: Broad region (Americas / EMEA / APAC) from the country_codes seed.
+      - name: is_apac
+        description: Boolean flag — true when the order was placed in an APAC country.
+
+  - name: int_menu_with_margins
+    description: >
+      Menu item grain table enriched with calculated margin metrics and brand metadata
+      from the truck_brands seed. Adds margin_pct, a margin_band classification
+      (High / Medium / Low), cuisine type, and brand founding year. Used by the
+      fct_menu_profitability mart.
+    columns:
+      - name: menu_item_id
+        description: Unique identifier for the menu item.
+        tests:
+          - not_null
+          - unique
+      - name: menu_type_id
+        description: Foreign key linking the item to a menu type / truck brand.
+        tests:
+          - not_null
+      - name: menu_type
+        description: Name of the menu type (e.g. Asian, BBQ).
+      - name: truck_brand_name
+        description: Name of the truck brand that offers this item.
+      - name: menu_item_name
+        description: Display name of the menu item.
+        tests:
+          - not_null
+      - name: item_category
+        description: High-level product category (e.g. Beverage, Main).
+      - name: item_subcategory
+        description: Detailed subcategory within the main category.
+      - name: cost_of_goods_usd
+        description: Raw cost to produce the item in USD.
+        tests:
+          - not_null
+          - is_positive
+      - name: sale_price_usd
+        description: Customer-facing sale price in USD.
+        tests:
+          - not_null
+          - is_positive
+      - name: profit_per_item
+        description: Gross profit per unit sold (sale_price_usd - cost_of_goods_usd).
+        tests:
+          - not_null
+      - name: margin_pct
+        description: Gross margin as a percentage of sale price, rounded to 2dp.
+      - name: margin_band
+        description: >
+          Categorical margin classification:
+          High (>=50%), Medium (25–50%), Low (<25%).
+        tests:
+          - accepted_values:
+              values: ['High', 'Medium', 'Low']
+      - name: cuisine_type
+        description: Cuisine category from the truck_brands seed (e.g. Mexican, Vegan).
+      - name: brand_founding_year
+        description: Year the truck brand was founded, from the truck_brands seed.
+      - name: brand_is_active
+        description: Whether the brand is currently operating, from the truck_brands seed.

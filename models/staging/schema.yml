@@ -1,0 +1,149 @@
+version: 2
+
+models:
+  - name: stg_trucks
+    description: >
+      Cleaned and renamed truck records from the RAW_POS.TRUCK source table.
+      One row per truck. Used in intermediate models to enrich order data
+      with truck attributes.
+    columns:
+      - name: truck_id
+        description: Unique identifier for the truck (natural key from source).
+        tests:
+          - not_null
+          - unique
+      - name: menu_type_id
+        description: Links the truck to its menu type; used to join against stg_menu.
+        tests:
+          - not_null
+      - name: primary_city
+        description: The city where the truck primarily operates.
+      - name: region
+        description: Geographic region the truck operates in (e.g. Southeast Asia, North America).
+      - name: country
+        description: Country where the truck is registered.
+      - name: franchise_flag
+        description: True / 1 if the truck is franchise-owned; false / 0 if corporate-owned.
+      - name: truck_year
+        description: Model year of the truck vehicle.
+      - name: make
+        description: Vehicle manufacturer (e.g. Ford, Toyota).
+      - name: model
+        description: Vehicle model name.
+      - name: ev_flag
+        description: True / 1 if the truck uses an electric vehicle.
+      - name: franchise_id
+        description: Identifier for the franchisee. Null for corporate-owned trucks.
+      - name: truck_opening_date
+        description: Date the truck began operations.
+
+  - name: stg_orders
+    description: >
+      Cleaned order header records from RAW_POS.ORDER_HEADER. Filters out any
+      orders with zero or negative order_total. One row per customer order.
+      Used as the primary fact grain in all mart models.
+    columns:
+      - name: order_id
+        description: Unique identifier for the order (natural key from source).
+        tests:
+          - not_null
+          - unique
+      - name: truck_id
+        description: Foreign key to the truck that fulfilled this order.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_trucks')
+                field: truck_id
+      - name: location_id
+        description: Foreign key to the location where the order was placed.
+        tests:
+          - not_null
+      - name: customer_id
+        description: Identifier for the customer. May be null for anonymous / walk-up orders.
+      - name: order_ts
+        description: Timestamp when the order was placed.
+        tests:
+          - not_null
+      - name: order_currency
+        description: ISO 4217 currency code of the transaction (e.g. USD, CAD, AUD).
+      - name: order_amount
+        description: Pre-tax, pre-discount subtotal of the order.
+      - name: order_tax_amount
+        description: Tax charged on the order.
+      - name: order_discount_amount
+        description: Discount applied to the order.
+      - name: order_total
+        description: Final amount the customer paid (after tax and discount).
+        tests:
+          - not_null
+          - is_positive
+
+  - name: stg_locations
+    description: >
+      Cleaned location records from RAW_POS.LOCATION. One row per physical
+      location a truck can operate at. Used to enrich orders with city and
+      country context.
+    columns:
+      - name: location_id
+        description: Unique identifier for the location (natural key from source).
+        tests:
+          - not_null
+          - unique
+      - name: placekey
+        description: SafeGraph Placekey — a standardised global location identifier.
+      - name: location
+        description: Human-readable name or address of the location.
+      - name: city
+        description: City the location is in.
+      - name: region
+        description: State, province, or region the location belongs to.
+      - name: iso_country_code
+        description: Two-letter ISO 3166-1 alpha-2 country code.
+        tests:
+          - not_null
+      - name: country
+        description: Full country name.
+
+  - name: stg_menu
+    description: >
+      Cleaned menu item records from RAW_POS.MENU. One row per menu item.
+      Adds a calculated profit_per_item column. Used to enrich truck-level
+      reporting with item pricing and margin data.
+    columns:
+      - name: menu_item_id
+        description: Unique identifier for the menu item (natural key from source).
+        tests:
+          - not_null
+          - unique
+      - name: menu_type_id
+        description: Groups items by truck brand / menu style.
+        tests:
+          - not_null
+      - name: menu_type
+        description: Name of the menu type associated with this item (e.g. Asian, BBQ).
+      - name: truck_brand_name
+        description: Name of the truck brand that serves this item.
+      - name: menu_item_name
+        description: Display name of the menu item.
+        tests:
+          - not_null
+      - name: item_category
+        description: Broad product category (e.g. Beverage, Main Course, Dessert).
+      - name: item_subcategory
+        description: More granular subcategory within item_category.
+      - name: cost_of_goods_usd
+        description: Production cost of the item in USD.
+        tests:
+          - not_null
+          - is_positive
+      - name: sale_price_usd
+        description: Customer-facing sale price in USD.
+        tests:
+          - not_null
+          - is_positive
+      - name: profit_per_item
+        description: Gross profit per unit (sale_price_usd minus cost_of_goods_usd).
+        tests:
+          - not_null

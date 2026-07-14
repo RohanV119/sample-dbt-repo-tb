@@ -1,0 +1,152 @@
+version: 2
+
+models:
+  - name: fct_daily_truck_sales
+    description: >
+      Daily sales summary at the truck grain. Joins enriched orders to trucks and
+      menu data to produce one row per truck per calendar day. The primary mart
+      for truck-level revenue reporting and operational dashboards.
+    columns:
+      - name: truck_id
+        description: Identifier for the truck.
+        tests:
+          - not_null
+      - name: order_date
+        description: Calendar date (truncated from order_ts).
+        tests:
+          - not_null
+      - name: primary_city
+        description: Primary city the truck operates in.
+      - name: country
+        description: Country the truck is registered in.
+      - name: truck_year
+        description: Model year of the truck vehicle.
+      - name: make
+        description: Truck vehicle manufacturer.
+      - name: model
+        description: Truck vehicle model name.
+      - name: truck_brand_name
+        description: Food brand served by the truck.
+      - name: daily_order_count
+        description: Total number of orders fulfilled by this truck on this date.
+        tests:
+          - not_null
+          - is_positive
+      - name: daily_revenue
+        description: Total order_total across all orders for this truck on this date.
+        tests:
+          - not_null
+          - is_positive
+      - name: avg_order_value
+        description: >
+          Average revenue per order for this truck on this date.
+          Calculated as daily_revenue / daily_order_count (null-safe).
+
+  - name: fct_city_performance
+    description: >
+      City-level performance summary aggregated across all dates. One row per city.
+      Provides total orders, revenue, active days, and average order value for
+      each city in the Tasty Bytes network.
+    columns:
+      - name: city
+        description: Name of the city.
+        tests:
+          - not_null
+          - unique
+      - name: country
+        description: Country the city is located in.
+      - name: region
+        description: State, province, or broader region.
+      - name: trucks_served
+        description: Count of distinct trucks that have operated in this city.
+      - name: total_orders
+        description: Cumulative order count across all dates for this city.
+        tests:
+          - not_null
+          - is_positive
+      - name: total_revenue
+        description: Cumulative sum of order_total for all orders in this city.
+        tests:
+          - not_null
+          - is_positive
+      - name: avg_order_value
+        description: Average order_total across all orders in this city.
+      - name: first_order_date
+        description: Earliest order date recorded in this city.
+      - name: last_order_date
+        description: Most recent order date recorded in this city.
+      - name: revenue_per_order
+        description: Total revenue divided by total orders (null-safe).
+      - name: active_days
+        description: Number of calendar days between first and last order date.
+
+  - name: fct_menu_profitability
+    description: >
+      Menu item profitability summary. Aggregates order and revenue metrics per menu
+      item using the intermediate int_orders_enriched and int_menu_with_margins models.
+      Includes margin classification, APAC vs non-APAC order splits, and first/last
+      sold dates. One row per menu item.
+    columns:
+      - name: menu_profitability_key
+        description: Surrogate key generated from menu_item_id using MD5 hashing.
+        tests:
+          - not_null
+          - unique
+      - name: menu_item_id
+        description: Natural key — unique identifier for the menu item from source.
+        tests:
+          - not_null
+          - unique
+      - name: menu_item_name
+        description: Display name of the menu item.
+        tests:
+          - not_null
+      - name: item_category
+        description: Broad product category (e.g. Beverage, Main Course).
+      - name: item_subcategory
+        description: Granular subcategory within item_category.
+      - name: truck_brand_name
+        description: Brand that offers this menu item.
+      - name: cuisine_type
+        description: Cuisine type of the brand, sourced from the truck_brands seed.
+      - name: margin_band
+        description: >
+          Margin classification: High (>=50%), Medium (25–50%), Low (<25%).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['High', 'Medium', 'Low']
+      - name: margin_pct
+        description: Unit gross margin as a percentage of sale price.
+      - name: sale_price_usd
+        description: Customer-facing unit price in USD.
+      - name: cost_of_goods_usd
+        description: Production cost per unit in USD.
+      - name: profit_per_item
+        description: Gross profit per unit sold in USD.
+      - name: total_orders
+        description: Total number of orders that included this menu item.
+        tests:
+          - not_null
+          - is_positive
+      - name: total_revenue_usd
+        description: Total revenue generated by this menu item across all orders.
+        tests:
+          - not_null
+          - is_positive
+      - name: total_profit_usd
+        description: Total gross profit from this menu item across all orders.
+        tests:
+          - not_null
+      - name: realized_margin_pct
+        description: >
+          Actual portfolio margin percentage (total_profit / total_revenue * 100).
+          May differ from the unit margin_pct due to order mix.
+      - name: apac_orders
+        description: Count of distinct orders placed in APAC countries.
+      - name: non_apac_orders
+        description: Count of distinct orders placed outside APAC.
+      - name: first_sold_date
+        description: Earliest date this item appeared in an order.
+      - name: last_sold_date
+        description: Most recent date this item appeared in an order.

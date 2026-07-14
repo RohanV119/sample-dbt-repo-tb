@@ -1,0 +1,16 @@
+iso_country_code,country_name,region,is_apac
+AU,Australia,APAC,true
+CA,Canada,Americas,false
+CN,China,APAC,true
+DE,Germany,EMEA,false
+ES,Spain,EMEA,false
+FR,France,EMEA,false
+GB,United Kingdom,EMEA,false
+IN,India,APAC,true
+JP,Japan,APAC,true
+KR,South Korea,APAC,true
+MX,Mexico,Americas,false
+NZ,New Zealand,APAC,true
+SG,Singapore,APAC,true
+US,United States,Americas,false
+ZA,South Africa,EMEA,false

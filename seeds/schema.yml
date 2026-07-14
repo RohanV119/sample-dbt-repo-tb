@@ -1,0 +1,50 @@
+version: 2
+
+seeds:
+  - name: country_codes
+    description: >
+      ISO 3166-1 alpha-2 country codes with region mapping and APAC flag.
+      Used to enrich location data with standardised region labels.
+    columns:
+      - name: iso_country_code
+        description: Two-letter ISO 3166-1 alpha-2 country code (e.g. US, AU, GB).
+        tests:
+          - not_null
+          - unique
+      - name: country_name
+        description: Full English name of the country.
+        tests:
+          - not_null
+      - name: region
+        description: Broad geographic region (Americas, EMEA, APAC).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Americas', 'EMEA', 'APAC']
+      - name: is_apac
+        description: Boolean flag — true when the country belongs to the Asia-Pacific region.
+        tests:
+          - not_null
+
+  - name: truck_brands
+    description: >
+      Reference table for Tasty Bytes truck brand metadata including cuisine type and
+      founding year. Joined to stg_menu to enrich brand-level reporting.
+    columns:
+      - name: truck_brand_name
+        description: Unique name of the food truck brand.
+        tests:
+          - not_null
+          - unique
+      - name: cuisine_type
+        description: Primary cuisine category served by this brand.
+        tests:
+          - not_null
+      - name: founding_year
+        description: Year the brand was established.
+        tests:
+          - not_null
+      - name: is_active
+        description: Whether the brand is currently operating.
+        tests:
+          - not_null

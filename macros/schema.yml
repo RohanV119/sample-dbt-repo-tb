@@ -1,0 +1,49 @@
+version: 2
+
+macros:
+  - name: cents_to_dollars
+    description: >
+      Converts a cents-valued column to dollars by dividing by 100 and rounding
+      to the specified number of decimal places (default: 2).
+    arguments:
+      - name: column_name
+        type: string
+        description: The column expression containing the value in cents.
+      - name: precision
+        type: integer
+        description: Number of decimal places to round to. Defaults to 2.
+
+  - name: generate_surrogate_key
+    description: >
+      Generates a surrogate (hash) key from one or more column names by wrapping
+      dbt_utils.generate_surrogate_key. Use this on fact tables where a single
+      natural primary key doesn't exist.
+    arguments:
+      - name: field_list
+        type: list
+        description: Ordered list of column name strings to hash together.
+
+  - name: safe_divide
+    description: >
+      Divides numerator by denominator, returning NULL instead of a division-by-zero
+      error when denominator is 0. Equivalent to numerator / NULLIF(denominator, 0).
+    arguments:
+      - name: numerator
+        type: string
+        description: The numerator column or expression.
+      - name: denominator
+        type: string
+        description: The denominator column or expression. Division is skipped when this is 0.
+
+  - name: date_spine_filter
+    description: >
+      Emits a WHERE-clause condition that filters a timestamp column to on or after
+      the project-level `start_date` variable. Keeps model logic DRY and makes the
+      filter date configurable without touching model SQL.
+    arguments:
+      - name: timestamp_column
+        type: string
+        description: The timestamp or date column to filter on.
+      - name: start_date_var
+        type: string
+        description: Name of the dbt var holding the start date. Defaults to 'start_date'.

@@ -1,0 +1,58 @@
+version: 2
+
+sources:
+  - name: raw_pos
+    description: >
+      Raw point-of-sale data from the Tasty Bytes food truck system. Loaded directly
+      from source operational systems with no transformation applied. All tables
+      live in the FROSTBYTE_TASTY_BYTES.RAW_POS schema.
+    database: FROSTBYTE_TASTY_BYTES
+    schema: RAW_POS
+    tables:
+      - name: TRUCK
+        description: One row per food truck in the Tasty Bytes fleet.
+        columns:
+          - name: TRUCK_ID
+            description: Unique identifier for the truck.
+            tests: [not_null, unique]
+          - name: MENU_TYPE_ID
+            description: Foreign key to the menu type served by this truck.
+          - name: PRIMARY_CITY
+            description: Primary city where the truck operates.
+          - name: FRANCHISE_FLAG
+            description: 1 if franchise-owned, 0 if corporate.
+          - name: EV_FLAG
+            description: 1 if the truck uses an electric vehicle.
+
+      - name: MENU
+        description: Menu items available across all truck brands.
+        columns:
+          - name: MENU_ITEM_ID
+            description: Unique identifier for a menu item.
+            tests: [not_null, unique]
+          - name: MENU_TYPE_ID
+            description: Groups items by truck brand / menu style.
+          - name: SALE_PRICE_USD
+            description: Customer-facing price in USD.
+          - name: COST_OF_GOODS_USD
+            description: Cost to produce the item in USD.
+
+      - name: ORDER_HEADER
+        description: One row per customer order (header-level, not item-level).
+        columns:
+          - name: ORDER_ID
+            description: Unique identifier for the order.
+            tests: [not_null, unique]
+          - name: TRUCK_ID
+            description: Truck that fulfilled the order.
+          - name: ORDER_TOTAL
+            description: Final amount charged to the customer including tax.
+
+      - name: LOCATION
+        description: Physical locations where orders were placed.
+        columns:
+          - name: LOCATION_ID
+            description: Unique identifier for the location.
+            tests: [not_null, unique]
+          - name: ISO_COUNTRY_CODE
+            description: Two-letter ISO 3166-1 alpha-2 country code.
